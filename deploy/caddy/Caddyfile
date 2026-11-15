@@ -1,0 +1,41 @@
+# FortressStack — Caddy reverse proxy / TLS entry point.
+# Production: replace fortresse.example.com with your real public hostnames
+# and point DNS A records at the server. Caddy obtains + renews TLS
+# certificates automatically for public domains.
+
+# ---- Public entry point (admin + workspace + observability + gateway) ----
+# fortresse.example.com {
+#     # Admin console (SPA) + /api to the FastAPI admin backend
+#     handle /api/* {
+#         reverse_proxy admin-backend:8000
+#     }
+#     handle {
+#         reverse_proxy admin-frontend:80
+#     }
+#     encode gzip
+# }
+
+# ---- Separate hostnames per service (recommended for production) ----
+# admin.example.com      { reverse_proxy admin-frontend:80 }
+# workspace.example.com  { reverse_proxy openwebui:8080 }
+# observability.example.com { reverse_proxy langfuse:3000 }
+# gateway.example.com    { reverse_proxy backend:4001 }
+
+# ---------------------------------------------------------------------------
+# Local / non-TLS default: forward everything by path so the stack works over
+# plain HTTP on a single port in development. For a real deployment, uncomment
+# the public blocks above (with real domains) and keep this as-is or remove it.
+# ---------------------------------------------------------------------------
+:80 {
+    # Admin API + SPA from the admin stack.
+    handle /api/* {
+        reverse_proxy admin-backend:8000
+    }
+    handle /health {
+        reverse_proxy admin-backend:8000
+    }
+    handle {
+        reverse_proxy admin-frontend:80
+    }
+    encode gzip
+}

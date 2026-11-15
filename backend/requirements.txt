@@ -1,0 +1,7 @@
+# FortressStack Gateway — backend dependencies
+fastapi>=0.115
+uvicorn[standard]>=0.34
+pydantic>=2.10
+pyyaml>=6.0
+httpx==0.28.1
+python-dotenv==1.0.1

@@ -1,0 +1,40 @@
+# FortressStack Gateway — seeded configuration.
+# Loaded by backend/app/config.py at boot. Layered, so FORTRESS_* env vars
+# override these defaults. The master key lives in the environment
+# (LITELLM_MASTER_KEY or FORTRESS_GATEWAY_MASTER_KEY), never in this file.
+
+app_name: FortressStack Gateway
+environment: development
+debug: true
+host: 0.0.0.0
+port: 4001
+
+# Local-mode egress proof: refuse to proxy any call to an external host.
+local_mode: true
+egress_allowlist: []
+
+# Where the private models live.
+ollama_base_url: http://ollama:11434
+default_model: llama3.1:8b
+
+# Approved model catalogue (allowlist) — only these are served.
+models:
+  - name: llama3.1:8b
+    provider: ollama
+    mode: chat
+    context_window: 8192
+    max_tokens: 4096
+  - name: qwen2.5:7b
+    provider: ollama
+    mode: chat
+    context_window: 32768
+    max_tokens: 8192
+  - name: nomic-embed-text
+    provider: ollama
+    mode: embedding
+    context_window: 2048
+    max_tokens: 512
+
+require_auth: false
+timeout_seconds: 60
+max_retries: 2

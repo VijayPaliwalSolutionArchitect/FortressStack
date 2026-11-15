@@ -1,0 +1,188 @@
+# FortressStack — Private AI Workspace & LLM Gateway
+# Full self-hosted stack: local LLMs (Ollama) + governed gateway (LiteLLM)
+# + workspace (Open WebUI) + admin backend + observability (Langfuse).
+#
+# Deploy with:
+#   docker compose up -d --build
+#
+# See docs/DEPLOYMENT.md for the production (Coolify/Caddy/TLS) guide.
+
+services:
+  # ---------------------------------------------------------------------------
+  # Data
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fortress
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fortress}
+      POSTGRES_DB: fortress
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fortress"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Admin backend (FastAPI) — teams, budgets, models, RAG, settings, audit
+  # ---------------------------------------------------------------------------
+  admin-backend:
+    build: ./admin-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FORTRESS_DATABASE_URL: postgresql://fortress:${POSTGRES_PASSWORD:-fortress}@postgres:5432/fortress
+      FORTRESS_GATEWAY__BASE_URL: http://litellm:4000
+      FORTRESS_GATEWAY__MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-fortress-master}
+      FORTRESS_ENVIRONMENT: production
+      FORTRESS_LOCAL_MODE: "true"
+      FORTRESS_RAG__UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Admin frontend (React/Vite)
+  # ---------------------------------------------------------------------------
+  admin-frontend:
+    build: ./admin-frontend
+    restart: unless-stopped
+    depends_on:
+      - admin-backend
+    ports:
+      - "5173:80"
+
+  # ---------------------------------------------------------------------------
+  # Local LLM serving (Ollama) — CPU/GPU aware
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    # GPU: uncomment the deploy block below if you have an NVIDIA GPU.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    ports:
+      - "11434:11434"
+
+  # ---------------------------------------------------------------------------
+  # LLM Gateway (LiteLLM) — per-team keys, budgets, routing, fallbacks
+  # ---------------------------------------------------------------------------
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    volumes:
+      - ./config/litellm/config.yaml:/app/config.yaml:ro
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-fortress-master}
+      DATABASE_URL: postgresql://fortress:${POSTGRES_PASSWORD:-fortress}@postgres:5432/fortress
+    ports:
+      - "4000:4000"
+
+  # ---------------------------------------------------------------------------
+  # FortressStack Gateway (backend) — minimal private OpenAI-compatible LLM
+  # gateway with local-mode egress enforcement + model allowlist. A
+  # self-contained alternative to LiteLLM for offline / small deployments.
+  # ---------------------------------------------------------------------------
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      FORTRESS_ENVIRONMENT: production
+      FORTRESS_LOCAL_MODE: "true"
+      FORTRESS_OLLAMA__BASE_URL: http://ollama:11434
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-fortress-master}
+    ports:
+      - "4001:4001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:4001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # AI Workspace (Open WebUI) — chat UI with RAG folders & shared prompts
+  # ---------------------------------------------------------------------------
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      OPENAI_API_BASE_URLS: http://litellm:4000
+      OPENAI_API_KEYS: ${LITELLM_MASTER_KEY:-sk-fortress-master}
+      WEBUI_AUTH: "true"
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-change-me}
+    volumes:
+      - openwebui:/app/backend/data
+    ports:
+      - "3000:8080"
+
+  # ---------------------------------------------------------------------------
+  # Observability (Langfuse) — trace every LLM call
+  # ---------------------------------------------------------------------------
+  langfuse:
+    image: langfuse/langfuse:3
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://fortress:${POSTGRES_PASSWORD:-fortress}@postgres:5432/fortress
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me}
+      SALT: ${LANGFUSE_SALT:-change-me}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-change-me}
+    ports:
+      - "3001:3000"
+
+  # ---------------------------------------------------------------------------
+  # Reverse proxy / TLS (Caddy) — production entry point
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - admin-frontend
+      - admin-backend
+      - openwebui
+      - langfuse
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pg_data:
+  uploads:
+  ollama:
+  openwebui:
+  caddy_data:
+  caddy_config:

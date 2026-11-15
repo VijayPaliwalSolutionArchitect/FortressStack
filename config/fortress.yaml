@@ -1,0 +1,47 @@
+# FortressStack — layered configuration
+# These YAML files provide defaults; environment variables (FORTRESS_SECTION__KEY)
+# override them. See admin-backend/app/core/config.py for the full model.
+
+app_name: FortressStack
+environment: development
+debug: true
+local_mode: true
+egress_allowlist: []
+
+gateway:
+  base_url: http://litellm:4000
+  timeout_seconds: 60
+  max_retries: 2
+  fallback_models: ["qwen2.5:7b"]
+
+rag:
+  chunk_size: 512
+  chunk_overlap: 64
+  embedding_model: nomic-embed-text
+  top_k: 5
+  similarity_threshold: 0.55
+  upload_dir: /data/uploads
+  max_file_mb: 50
+
+team:
+  default_budget_usd: 50.0
+  default_rate_limit_rpm: 60
+  default_models: ["llama3.1:8b"]
+
+auth:
+  jwt_expiry_minutes: 60
+  sso_enabled: true
+  sso_provider: better-auth
+  team_mapping: db
+
+observability:
+  enabled: true
+  langfuse_host: http://langfuse:3000
+  trace_sample_rate: 1.0
+
+backup:
+  enabled: true
+  schedule_cron: "0 2 * * *"
+  destination: /backups
+  retention_days: 30
+  include_volumes: ["ollama", "openwebui", "litellm", "langfuse"]
