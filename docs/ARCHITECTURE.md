@@ -1,5 +1,7 @@
 # Architecture
 
+*Version: v0.1 · 15-11-26 · Author: SHIVAM ITCS (JARVIS)*
+
 FortressStack is a **single-node, self-hosted AI workspace** built as a composition of
 independent services wired through Docker Compose. Everything runs on the host's own
 hardware; no data leaves the machine in the default `local_mode` posture.
@@ -80,7 +82,7 @@ Upload ──► /api/v1/rag/corpora/{id}/documents
         chunk (512 tok / 64 overlap)
         embed (LocalEmbeddingBackend in numpy, or Ollama nomic-embed-text)
         store chunks in postgres
-Retrieve ──► /api/v1/rag/query  (embed query → cosine over chunks → top-k)
+|Retrieve ──► POST /api/v1/rag/retrieve  (embed query → cosine over chunks → top-k)
 ```
 
 ## Security posture

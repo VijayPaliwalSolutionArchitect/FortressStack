@@ -1,5 +1,7 @@
 # Features
 
+*Version: v0.1 · 15-11-26 · Author: SHIVAM ITCS (JARVIS)*
+
 Capability-by-capability, each mapped to the module that implements it. FortressStack
 is a **governed private AI workspace**: the headline is not raw model access but
 *control* — who can call what model, at what budget, with a complete audit trail.
@@ -62,7 +64,7 @@ is a **governed private AI workspace**: the headline is not raw model access but
 
 ## 7. Audit log — append-only, exportable
 
-- Every admin mutation is recorded (`record(actor, action, target, payload)`).
+- Every admin mutation is recorded (`audit.log(actor, action, resource_type, resource_id, detail)`).
 - Queried with `limit`/`offset`/`actor`/`action` filters; full export endpoint for
   compliance review (`/api/v1/audit/export`).
 - **Assets:** `admin-backend/app/core/audit.py`, `admin-backend/app/api/routes/audit.py`,

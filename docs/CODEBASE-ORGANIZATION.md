@@ -1,5 +1,7 @@
 # Codebase Organization
 
+*Version: v0.1 · 15-11-26 · Author: SHIVAM ITCS (JARVIS)*
+
 A module-by-module walkthrough of the entire tree. Everything here is derived from
 the actual source on disk, not from the feature spec.
 
@@ -105,8 +107,9 @@ Drop `.gitkeep` files in if you want them tracked.
 
 ## `docs/`
 
-This documentation set: `ARCHITECTURE`, `TECH-STACK`, `FEATURES`, `RUNNING`,
-`DEPLOYMENT`, `CODEBASE-ORGANIZATION`.
+This documentation set: `README` (repo root), `ARCHITECTURE`, `INSTALLATION`,
+`RUNNING`, `API`, `ADMIN-GUIDE`, `FEATURES`, `TECH-STACK`, `DEPLOYMENT`,
+`PLAYBOOK-CROSSWALK`, `env-config`, `CODEBASE-ORGANIZATION`.
 
 ---
 

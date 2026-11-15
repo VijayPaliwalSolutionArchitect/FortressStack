@@ -1,5 +1,7 @@
 # Technology Stack & Versions
 
+*Version: v0.1 · 15-11-26 · Author: SHIVAM ITCS (JARVIS)*
+
 Every stack component, its role, and the exact runtime/version requirement. Derived
 from `Dockerfile`s, `requirements.txt`, `package.json`, and `docker-compose.yml`.
 

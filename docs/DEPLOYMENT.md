@@ -1,5 +1,7 @@
 # Deployment
 
+*Version: v0.1 · 15-11-26 · Author: SHIVAM ITCS (JARVIS)*
+
 Production guidance for FortressStack: TLS/domains, environment configuration,
 backups, hardening, and notes on the optional `infra/` directory.
 

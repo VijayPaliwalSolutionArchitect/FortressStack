@@ -57,6 +57,9 @@ admin-backend/.env
 backend/.env
 
 # --- Runtime data / volumes ---
+*.db
+*.sqlite
+*.sqlite3
 /data/
 /backups/
 *.log

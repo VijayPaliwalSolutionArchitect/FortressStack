@@ -1,5 +1,7 @@
 # Running FortressStack
 
+*Version: v0.1 · 15-11-26 · Author: SHIVAM ITCS (JARVIS)*
+
 This page covers the three ways to run the stack — the full Docker Compose stack,
 per-service local development, and the test suites — plus the port map and
 troubleshooting.
@@ -158,7 +160,7 @@ Everything is layered — environment variables override YAML at runtime:
 export FORTRESS_LOCAL_MODE=true
 export FORTRESS_GATEWAY__BASE_URL=http://litellm:4000
 export FORTRESS_RAG__CHUNK_SIZE=768
-export LITELLM_MASTER_KEY=sk-my-secret
+export LITELLM_MASTER_KEY=«redacted»
 docker compose up -d
 ```
 
