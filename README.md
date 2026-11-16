@@ -170,12 +170,13 @@ FortressStack/
 - [docs/CODEBASE-ORGANIZATION.md](docs/CODEBASE-ORGANIZATION.md) — per-module file walkthrough
 - [docs/PLAYBOOK-CROSSWALK.md](docs/PLAYBOOK-CROSSWALK.md) — playbook Project 8 ↔ implementation map
 - [docs/env-config.md](docs/env-config.md) — every environment variable with defaults
+- [docs/FUTURE-EXPANSION.md](docs/FUTURE-EXPANSION.md) — roadmap: features, integrations, scaling, monetization
 
 ## Project status
 
 Working baseline. `admin-backend` config + RAG tests (11) and `backend` gateway
 tests (8) pass on Python 3.12/3.14; `docker compose config` validates clean.
-See [docs/RUNNING.md](docs/RUNNING.md#tests). Voice mode (STT/TTS) is a declared
+See [docs/RUNNING.md](docs/RUNNING.md#4-tests). Voice mode (STT/TTS) is a declared
 stub pending audio services (`edge-tts` / `faster-whisper`, commented in
 `requirements.txt`).
 
